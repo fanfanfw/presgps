@@ -30,7 +30,7 @@ class CabangController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_cabang' => 'required|max:3|unique:cabang,kode_cabang',
+            'kode_cabang' => 'required|max:5|unique:cabang,kode_cabang',
             'nama_cabang' => 'required',
             'alamat_cabang' => 'required',
             'telepon_cabang' => 'required|numeric',
