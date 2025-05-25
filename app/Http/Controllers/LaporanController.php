@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cabang;
 use App\Models\Denda;
+use App\Models\Departemen;
 use App\Models\Karyawan;
 use App\Models\Pengaturanumum;
 use App\Models\Presensi;
@@ -16,7 +17,9 @@ class LaporanController extends Controller
         $data['list_bulan'] = config('global.list_bulan');
         $data['start_year'] = config('global.start_year');
         $cabang = Cabang::orderBy('kode_cabang')->get();
+        $departemen = Departemen::orderBy('kode_dept')->get();
         $data['cabang'] = $cabang;
+        $data['departemen'] = $departemen;
         return view('laporan.presensi', $data);
     }
 
@@ -109,51 +112,73 @@ class LaporanController extends Controller
         $q_presensi->leftJoinSub($presensi_detail, 'presensi', function ($join) {
             $join->on('karyawan.nik', '=', 'presensi.nik');
         });
+        if (!empty($request->kode_cabang)) {
+            $q_presensi->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+        if (!empty($request->kode_dept)) {
+            $q_presensi->where('karyawan.kode_dept', $request->kode_dept);
+        }
+
+        if (!empty($request->nik)) {
+            $q_presensi->where('karyawan.nik', $request->nik);
+        }
         $q_presensi->orderBy('karyawan.nama_karyawan');
+        $q_presensi->orderBy('presensi.tanggal', 'asc');
         $presensi = $q_presensi->get();
 
 
-        $laporan_presensi = $presensi->groupBy('nik')->map(function ($rows) {
-            $data = [
-                'nik' => $rows->first()->nik,
-                'nama_karyawan' => $rows->first()->nama_karyawan,
-                'nama_jabatan' => $rows->first()->nama_jabatan,
-                'nama_dept' => $rows->first()->nama_dept,
-                'kode_cabang' => $rows->first()->kode_cabang
-            ];
-            foreach ($rows as $row) {
-                $data[$row->tanggal] = [
-                    'status' => $row->status,
-                    'kode_jam_kerja' => $row->kode_jam_kerja,
-                    'nama_jam_kerja' => $row->nama_jam_kerja,
-                    'jam_masuk' => $row->jam_masuk,
-                    'jam_pulang' => $row->jam_pulang,
-                    'jam_in' => $row->jam_in,
-                    'jam_out' => $row->jam_out,
-                    'istirahat' => $row->istirahat,
-                    'jam_awal_istirahat' => $row->jam_awal_istirahat,
-                    'jam_akhir_istirahat' => $row->jam_akhir_istirahat,
-                    'lintashari' => $row->lintashari,
-                    'keterangan_izin_absen' => $row->keterangan_izin_absen,
-                    'keterangan_izin_sakit' => $row->keterangan_izin_sakit,
-                    'keterangan_izin_cuti' => $row->keterangan_izin_cuti
-                ];
-            }
-            return $data;
-        });
-        $data['laporan_presensi'] = $laporan_presensi;
         $data['periode_dari'] = $periode_dari;
         $data['periode_sampai'] = $periode_sampai;
         $data['jmlhari'] = hitungJumlahHari($periode_dari, $periode_sampai) + 1;
         $data['denda_list'] = Denda::all()->toArray();
         $data['datalibur'] = getdatalibur($periode_dari, $periode_sampai);
-
         $data['generalsetting'] = $generalsetting;
+
         if (isset($_POST['exportButton'])) {
             header("Content-type: application/vnd-ms-excel");
             // Mendefinisikan nama file ekspor "-SahabatEkspor.xls"
             header("Content-Disposition: attachment; filename=Rekap Presensi $periode_dari - $periode_sampai.xls");
         }
-        return view('laporan.presensi_cetak', $data);
+        if (!empty($request->nik)) {
+            $karyawan = Karyawan::join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+                ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+                ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+                ->where('karyawan.nik', $request->nik)
+                ->first();
+            $data['karyawan'] = $karyawan;
+            $data['presensi'] = $presensi;
+            return view('laporan.presensi_karyawan_cetak', $data);
+        } else {
+            $laporan_presensi = $presensi->groupBy('nik')->map(function ($rows) {
+                $data = [
+                    'nik' => $rows->first()->nik,
+                    'nama_karyawan' => $rows->first()->nama_karyawan,
+                    'nama_jabatan' => $rows->first()->nama_jabatan,
+                    'nama_dept' => $rows->first()->nama_dept,
+                    'kode_cabang' => $rows->first()->kode_cabang
+                ];
+                foreach ($rows as $row) {
+                    $data[$row->tanggal] = [
+                        'status' => $row->status,
+                        'kode_jam_kerja' => $row->kode_jam_kerja,
+                        'nama_jam_kerja' => $row->nama_jam_kerja,
+                        'jam_masuk' => $row->jam_masuk,
+                        'jam_pulang' => $row->jam_pulang,
+                        'jam_in' => $row->jam_in,
+                        'jam_out' => $row->jam_out,
+                        'istirahat' => $row->istirahat,
+                        'jam_awal_istirahat' => $row->jam_awal_istirahat,
+                        'jam_akhir_istirahat' => $row->jam_akhir_istirahat,
+                        'lintashari' => $row->lintashari,
+                        'keterangan_izin_absen' => $row->keterangan_izin_absen,
+                        'keterangan_izin_sakit' => $row->keterangan_izin_sakit,
+                        'keterangan_izin_cuti' => $row->keterangan_izin_cuti
+                    ];
+                }
+                return $data;
+            });
+            $data['laporan_presensi'] = $laporan_presensi;
+            return view('laporan.presensi_cetak', $data);
+        }
     }
 }

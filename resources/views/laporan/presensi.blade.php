@@ -22,6 +22,14 @@
                     <div class="form-group mb-3">
                         <select name="kode_dept" id="kode_dept_presensi" class="form-select select2Kodedeptpresensi">
                             <option value="">Semua Departemen</option>
+                            @foreach ($departemen as $d)
+                                <option value="{{ $d->kode_dept }}">{{ textUpperCase($d->nama_dept) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <select name="nik" id="nik_presensi" class="form-select select2Nikpresensi">
+                            <option value="">Semua Karyawan</option>
                         </select>
                     </div>
                     <div class="form-group mb-3">
@@ -99,6 +107,50 @@
             });
         }
 
+        const select2Kodedeptpresensi = $(".select2Kodedeptpresensi");
+        if (select2Kodedeptpresensi.length) {
+            select2Kodedeptpresensi.each(function() {
+                var $this = $(this);
+                $this.wrap('<div class="position-relative"></div>').select2({
+                    placeholder: 'Semua Departemen',
+                    allowClear: true,
+                    dropdownParent: $this.parent()
+                });
+            });
+        }
+
+        const select2Nikpresensi = $(".select2Nikpresensi");
+        if (select2Nikpresensi.length) {
+            select2Nikpresensi.each(function() {
+                var $this = $(this);
+                $this.wrap('<div class="position-relative"></div>').select2({
+                    placeholder: 'Semua Karyawan',
+                    allowClear: true,
+                    dropdownParent: $this.parent()
+                });
+            });
+        }
+
+        $("#kode_cabang_presensi").change(function() {
+            const kode_cabang = $(this).val();
+            $.ajax({
+                type: "GET",
+                url: "{{ route('karyawan.getkaryawan') }}",
+                data: {
+                    kode_cabang: kode_cabang
+                },
+                cache: false,
+                success: function(respond) {
+                    $("#nik_presensi").empty();
+                    $("#nik_presensi").append("<option value=''>Semua Karyawan</option>");
+                    respond.forEach(function(item) {
+                        $("#nik_presensi").append("<option value='" + item.nik + "'>" + item.nik + " - " + item
+                            .nama_karyawan +
+                            "</option>");
+                    });
+                }
+            });
+        });
 
         $("#formPresensi").submit(function(e) {
             const periode_laporan = $("#periode_laporan").val();

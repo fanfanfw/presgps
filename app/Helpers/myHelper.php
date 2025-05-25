@@ -396,7 +396,7 @@ function hitungjamterlambat($jam_in, $jam_mulai)
                 'jamterlambat' => $jamterlambat,
                 'menitterlambat' => $menitterlambat,
                 'desimal_terlambat' => $desimal_terlambat,
-                'show' => '<span class="badge bg-danger">' . $show . '</span>',
+                'show' => '<span style="color:red">' . $show . '</span>',
                 'show_laporan' => 'Telat :' . $show,
                 'color' => 'red'
                 // 'color_terlambat' => $color_terlambat
@@ -406,7 +406,7 @@ function hitungjamterlambat($jam_in, $jam_mulai)
                 'menitterlambat' => 0,
                 'desimal_terlambat' => 0,
                 'color' => 'green',
-                'show' => '<span class="badge bg-success">Tepat Waktu</span>',
+                'show' => '<span style="color:green">Tepat Waktu</span>',
                 'show_laporan' => 'Tepat Waktu'
             ];
         }

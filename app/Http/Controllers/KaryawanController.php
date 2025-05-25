@@ -469,6 +469,14 @@ class KaryawanController extends Controller
         }
     }
 
+
+    public function getkaryawan(Request $request)
+    {
+        $kode_cabang = $request->kode_cabang;
+        $karyawan = Karyawan::where('kode_cabang', $kode_cabang)->get();
+        return response()->json($karyawan);
+    }
+
     public function idcard($nik)
     {
         $nik = Crypt::decrypt($nik);
