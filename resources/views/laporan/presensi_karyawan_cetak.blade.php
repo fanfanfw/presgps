@@ -136,17 +136,6 @@
                 @endphp
                 @foreach ($presensi as $d)
                     @php
-                        // Tetapkan warna status
-                        switch ($d->status) {
-                            case 'h': $color_status = 'green'; break;
-                            case 'i': $color_status = 'yellow'; break;
-                            case 's': $color_status = 'blue'; break;
-                            case 'c': $color_status = 'orange'; break;
-                            case 'a': $color_status = 'red'; break;
-                            default: $color_status = 'gray';
-                        }
-
-                        // Hitung jam terlambat
                         $jam_masuk = $d->tanggal . ' ' . $d->jam_masuk;
                         $terlambat = hitungjamterlambat($d->jam_in, $jam_masuk);
                         $pulangcepat = hitungpulangcepat(
@@ -158,55 +147,77 @@
                             $d->jam_akhir_istirahat,
                             $d->lintashari,
                         );
+                        if ($d->status == 'h') {
+                            $color_status = 'green';
+                        } elseif ($d->status == 'i') {
+                            $color_status = 'yellow';
+                        } elseif ($d->status == 's') {
+                            $color_status = 'blue';
+                        } elseif ($d->status == 'c') {
+                            $color_status = 'orange';
+                        } elseif ($d->status == 'a') {
+                            $color_status = 'red';
+                        }
+                    @endphp
+                    @if ($terlambat != null)
+                        @if ($terlambat['desimal_terlambat'] < 1)
+                            @php
+                                $potongan_jam_terlambat = 0;
+                                $denda = hitungdenda($denda_list, $terlambat['menitterlambat']);
+                            @endphp
+                        @else
+                            @php
+                                $potongan_jam_terlambat = $terlambat['desimal_terlambat'];
+                                $denda = 0;
+                            @endphp
+                        @endif
+                    @else
+                        @php
+                            $potongan_jam_terlambat = 0;
+                            $denda = 0;
+                        @endphp
+                    @endif
 
-                        // Default nilai
-                        $potongan_jam_terlambat = 0;
-                        $denda = 0;
 
-                        if ($terlambat !== null) {
-                            if (isset($terlambat['desimal_terlambat']) && $terlambat['desimal_terlambat'] < 1) {
-                                $denda = hitungdenda($denda_list, $terlambat['menitterlambat'] ?? 0);
-                            } else {
-                                $potongan_jam_terlambat = $terlambat['desimal_terlambat'] ?? 0;
-                            }
+                    @php
+
+                        if ($d->status == 'h') {
+                            $total_hadir++;
+                        } elseif ($d->status == 'i') {
+                            $total_izin++;
+                        } elseif ($d->status == 's') {
+                            $total_sakit++;
+                        } elseif ($d->status == 'c') {
+                            $total_cuti++;
+                        } elseif ($d->status == 'a') {
+                            $total_alfa++;
                         }
 
-                        // Rekap jumlah status
-                        switch ($d->status) {
-                            case 'h': $total_hadir++; break;
-                            case 'i': $total_izin++; break;
-                            case 's': $total_sakit++; break;
-                            case 'c': $total_cuti++; break;
-                            case 'a': $total_alfa++; break;
-                        }
-
-                        $total_terlambat += $terlambat['desimal_terlambat'] ?? 0;
+                        $total_terlambat += $terlambat['desimal_terlambat'];
                         $total_denda += $denda;
                         $potongan_jam = $pulangcepat + $potongan_jam_terlambat;
                         $total_potongan_jam += $potongan_jam;
                     @endphp
-
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ date('d-m-y', strtotime($d->tanggal)) }}</td>
-                        <td>
-                            {{ $d->nama_jam_kerja }} - {{ date('H:i', strtotime($d->jam_masuk)) }} -
-                            {{ date('H:i', strtotime($d->jam_pulang)) }}
-                        </td>
+                        <td>{{ $d->nama_jam_kerja }} - {{ date('H:i', strtotime($d->jam_masuk)) }} -
+                            {{ date('H:i', strtotime($d->jam_pulang)) }}</td>
                         <td style="text-align: center">
-                            {!! $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '<span style="color: red">Belum Absen</span>' !!}
-                        </td>
+                            {!! $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '<span style="color: red">Belum Absen</span>' !!}</td>
                         <td style="text-align: center">
                             {!! $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '<span style="color: red">Belum Absen</span>' !!}
                             @if ($pulangcepat > 0)
-                                <span style="color: red">(-{{ $pulangcepat }})</span>
+                                <span style="color: red">
+                                    (-{{ $pulangcepat }})
+                                </span>
                             @endif
                         </td>
                         <td style="text-align: center; background-color: {{ $color_status }}; color: #fff">
                             {{ textUpperCase($d->status) }}
                         </td>
                         <td style="text-align: center">
-                            {!! $terlambat['show'] ?? '' !!}
+                            {!! $terlambat != null ? $terlambat['show'] : '' !!}
                         </td>
                         <td style="text-align: right; color: red">
                             {{ $denda ? formatAngka($denda) : '' }}

@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pengaturan_umum', function (Blueprint $table) {
-            $table->string('domain_email')->nullable()->after('api_key');
-            $table->string('logo')->nullable()->after('domain_email');
+            $table->string('domain_wa_gateway')->after('domain_email')->nullable();
         });
     }
 
@@ -23,8 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pengaturan_umum', function (Blueprint $table) {
-            $table->dropColumn('domain_email');
-            $table->dropColumn('logo');
+            $table->dropColumn('domain_wa_gateway');
         });
     }
 };

@@ -4,10 +4,10 @@
      <div class="app-brand demo">
          <a href="index.html" class="app-brand-link">
              <span class="app-brand-logo demo">
-                 <i class="ti ti-fingerprint" style="font-size:48px !important"></i>
+                 <i class="ti ti-fingerprint" style="font-size:32px !important"></i>
                  {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="64"> --}}
              </span>
-             <span class="app-brand-text demo menu-text fw-bold">Roodolph<br><i><b>e</b></i>-Presensi</span>
+             <span class="app-brand-text demo menu-text fw-bold"><i><b>e</b></i>PresensiV2</span>
          </a>
 
          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
@@ -112,7 +112,7 @@
                              <div>General Setting</div>
                          </a>
                      </li>
-                     @if ($general_setting?->denda)
+                     @if ($general_setting->denda)
                          <li class="menu-item {{ request()->is(['denda', 'denda/*']) ? 'active' : '' }}">
                              <a href="{{ route('denda.index') }}" class="menu-link">
                                  <div>Denda</div>
@@ -179,7 +179,14 @@
                  </ul>
              </li>
          @endif
-
+         @if (auth()->user()->hasAnyPermission(['wagateway.index']))
+             <li class="menu-item {{ request()->is(['wagateway', 'wagateway/*']) ? 'active' : '' }}">
+                 <a href="{{ route('wagateway.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons ti ti-brand-whatsapp"></i>
+                     <div>WA Gateway</div>
+                 </a>
+             </li>
+         @endif
      </ul>
  </aside>
  <!-- / Menu -->

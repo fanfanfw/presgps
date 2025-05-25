@@ -48,6 +48,7 @@ class GeneralsettingController extends Controller
                 'cloud_id' => $request->cloud_id,
                 'api_key' => $request->api_key,
                 'domain_email' => $request->domain_email,
+                'domain_wa_gateway' => $request->domain_wa_gateway,
             ];
 
             if ($request->hasFile('logo')) {

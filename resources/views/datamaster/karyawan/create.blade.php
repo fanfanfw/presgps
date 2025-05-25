@@ -34,7 +34,7 @@
                     <option value="">Pendidikan Terakhir</option>
                     <option value="SD">SD</option>
                     <option value="SMP">SMP</option>
-                    <option value="SMA">SMA</option>
+                    <option value="SMA">SMP</option>
                     <option value="SMK">SMK</option>
                     <option value="D1">D1</option>
                     <option value="D2">D2</option>

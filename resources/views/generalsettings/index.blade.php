@@ -201,7 +201,9 @@
                     </div>
                     <x-input-with-icon-label label="Cloud Id" name="cloud_id" icon="ti ti-cloud" :value="$setting->cloud_id ?? ''" />
                     <x-input-with-icon-label label="API Key" name="api_key" icon="ti ti-key" :value="$setting->api_key ?? ''" />
-                    <x-input-with-icon-label label="Domain (contoh: gmail.com)" name="domain_email" icon="ti ti-mail" :value="$setting->domain_email ?? ''" />
+                    <x-input-with-icon-label label="Domain Email (contoh: adamadifa.site)" name="domain_email" icon="ti ti-mail" :value="$setting->domain_email ?? ''" />
+                    <x-input-with-icon-label label="Domain WA Gateway (contoh: https://wa.adamadifa.site)" name="domain_wa_gateway"
+                        icon="ti ti-message" :value="$setting->domain_wa_gateway ?? ''" />
                     <div class="form-group mb-3">
                         <label for="logo" style="font-weight: 600" class="form-label">Logo Perusahaan</label>
                         <input type="file" class="form-control" name="logo" id="logo">

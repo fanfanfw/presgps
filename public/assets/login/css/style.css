@@ -391,3 +391,11 @@ main.sign-up-mode .carousel {
         padding: 1rem 2rem 1.5rem;
     }
 }
+
+.checkbox-wrap {
+    position: relative;
+    height: 37px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+}

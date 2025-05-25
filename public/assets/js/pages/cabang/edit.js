@@ -10,9 +10,9 @@
                             message: 'Kode Cabang Harus Diisi'
                         },
                         stringLength: {
-                            max: 5,
+                            max: 3,
                             min: 3,
-                            message: 'Kode Cabang Harus 5 Karakter'
+                            message: 'Kode Cabang Harus 3 Karakter'
                         },
 
 

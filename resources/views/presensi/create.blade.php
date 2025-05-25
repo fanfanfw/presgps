@@ -111,6 +111,114 @@
             padding: 0 10px;
         }
 
+        #listcabang {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        #listcabang .select-wrapper {
+            position: relative;
+            width: 90%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 5px rgba(255, 255, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        #listcabang .select-wrapper::before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+        }
+
+        #listcabang select {
+            width: 100%;
+            height: 45px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 0 15px 0 45px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        #listcabang select:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #listcabang select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        #listcabang select option {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+        }
+
+        /* Tambahkan arrow icon kustom */
+        #listcabang .select-wrapper::after {
+            content: "";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+        }
+
         .scan-button {
             height: 45px !important;
             border-radius: 22px;
@@ -213,6 +321,16 @@
                         <span>{{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
                     </p>
                 </div>
+                <div id="listcabang">
+                    <div class="select-wrapper">
+                        <select name="cabang" id="cabang" class="form-control">
+                            @foreach ($cabang as $item)
+                                <option {{ $item->kode_cabang == $karyawan->kode_cabang ? 'selected' : '' }} value="{{ $item->lokasi_cabang }}">
+                                    {{ $item->nama_cabang }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
                 <div class="scan-buttons">
                     <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk">
                         <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon>
@@ -296,6 +414,10 @@
             let lokasi;
             // Variabel untuk menampung lokasi user
             let lokasi_user;
+            let lokasi_cabang = document.getElementById('cabang').value;
+            // Variabel map global
+            let map;
+            // alert(lokasi_cabang);
             // Mengambil elemen HTML dengan id 'notifikasi_radius'
             let notifikasi_radius = document.getElementById('notifikasi_radius');
             // Mengambil elemen HTML dengan id 'notifikasi_mulaiabsen'
@@ -386,19 +508,24 @@
                 }
             });
 
+
             // Tampilkan Map
             if (navigator.geolocation) {
                 // Menggunakan geolocation untuk mendapatkan lokasi saat ini
                 navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
             }
 
+            // Fungsi untuk memuat peta
+
             // Fungsi yang dijalankan ketika geolocation berhasil
             function successCallback(position) {
                 try {
                     // Membuat objek map
-                    var map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 18);
+                    //alert(position.coords.latitude + "," + position.coords.longitude);
+                    map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 18);
+                    //alert(position.coords.latitude + "," + position.coords.longitude);
                     // Mengambil lokasi kantor dari variabel $lokasi_kantor->lokasi_cabang
-                    var lokasi_kantor = "{{ $lokasi_kantor->lokasi_cabang }}";
+                    var lokasi_kantor = lokasi_cabang;
                     // Mengambil lokasi saat ini
                     lokasi = position.coords.latitude + "," + position.coords.longitude;
                     // Memisahkan lokasi kantor menjadi latitude dan longitude
@@ -447,9 +574,38 @@
             }
 
             // Fungsi yang dijalankan ketika geolocation gagal
-            function errorCallback() {
-                console.error("Error getting geolocation");
-                document.getElementById('map-loading').style.display = 'none';
+            function errorCallback(error) {
+                console.error("Error getting geolocation:", error);
+                document.getElementById('map-loading').innerHTML = 'Gagal mendapatkan lokasi. Silakan cek izin lokasi.';
+
+                // Coba inisialisasi peta dengan lokasi cabang default
+                try {
+                    var lok = lokasi_cabang.split(",");
+                    var lat_kantor = lok[0];
+                    var long_kantor = lok[1];
+
+                    // Inisialisasi peta dengan lokasi cabang
+                    map = L.map('map').setView([lat_kantor, long_kantor], 18);
+
+                    // Tambahkan tile layer
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    }).addTo(map);
+
+                    // Tambahkan lingkaran radius
+                    var radius = "{{ $lokasi_kantor->radius_cabang }}";
+                    var circle = L.circle([lat_kantor, long_kantor], {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.5,
+                        radius: radius
+                    }).addTo(map);
+
+                    document.getElementById('map-loading').style.display = 'none';
+                } catch (mapError) {
+                    console.error("Error initializing map:", mapError);
+                }
             }
 
             // Jika face recognition diaktifkan
@@ -690,8 +846,8 @@
                                                     if (detection.descriptor) {
                                                         const match = faceMatcher.findBestMatch(
                                                             detection.descriptor);
-                                                        console.log('Hasil matching:', match.toString());
-                                                        console.log('Distance:', match.distance);
+                                                        //console.log('Hasil matching:', match.toString());
+                                                        //console.log('Distance:', match.distance);
 
                                                         const box = detection.detection.box;
                                                         const isUnknown = match.toString().includes("unknown");
@@ -1023,6 +1179,7 @@
                             image: image,
                             status: status,
                             lokasi: lokasi,
+                            lokasi_cabang: lokasi_cabang,
                             kode_jam_kerja: "{{ $jam_kerja->kode_jam_kerja }}"
                         },
                         success: function(data) {
@@ -1103,6 +1260,7 @@
                             image: image,
                             status: status,
                             lokasi: lokasi,
+                            lokasi_cabang: lokasi_cabang,
                             kode_jam_kerja: "{{ $jam_kerja->kode_jam_kerja }}"
                         },
                         success: function(data) {
@@ -1144,6 +1302,121 @@
                             });
                         }
                     });
+                }
+            });
+
+            $("#cabang").change(function() {
+                // Ambil nilai lokasi cabang yang dipilih
+                lokasi_cabang = $(this).val();
+                console.log("Lokasi cabang berubah: " + lokasi_cabang);
+
+                // Ambil teks cabang yang dipilih
+                let cabangText = $("#cabang option:selected").text();
+
+                // Tampilkan notifikasi cabang berubah
+                swal.fire({
+                    icon: 'info',
+                    title: 'Lokasi Berubah',
+                    text: 'Lokasi cabang berubah menjadi: ' + cabangText,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+
+                // Jika lokasi cabang berubah, reload peta
+                if (typeof map !== 'undefined' && map !== null) {
+                    map.remove(); // Hapus peta sebelumnya
+                }
+
+                // Tampilkan indikator loading
+                document.getElementById('map-loading').style.display = 'block';
+
+                try {
+                    // Buat array dari string lokasi
+                    var lok = lokasi_cabang.split(",");
+                    var lat_kantor = lok[0];
+                    var long_kantor = lok[1];
+
+                    // Inisialisasi peta baru dengan lokasi cabang yang dipilih
+
+
+                    // Jika geolocation tersedia, tambahkan marker lokasi user
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            // Update lokasi user
+                            lokasi = position.coords.latitude + "," + position.coords.longitude;
+                            map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 18);
+
+                            // Tambahkan tile layer
+                            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 19,
+                                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                            }).addTo(map);
+                            // Tambahkan marker untuk lokasi user
+                            var marker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(map);
+
+                            // Tambahkan lingkaran radius
+                            var radius = "{{ $lokasi_kantor->radius_cabang }}";
+                            var circle = L.circle([lat_kantor, long_kantor], {
+                                color: 'red',
+                                fillColor: '#f03',
+                                fillOpacity: 0.5,
+                                radius: radius
+                            }).addTo(map);
+
+                            // Sembunyikan indikator loading
+                            document.getElementById('map-loading').style.display = 'none';
+                        }, function(error) {
+                            // Tangani error geolocation
+                            console.error("Error getting geolocation:", error);
+
+                            // Tambahkan lingkaran radius tanpa marker user
+                            var radius = "{{ $lokasi_kantor->radius_cabang }}";
+                            var circle = L.circle([lat_kantor, long_kantor], {
+                                color: 'red',
+                                fillColor: '#f03',
+                                fillOpacity: 0.5,
+                                radius: radius
+                            }).addTo(map);
+
+                            // Sembunyikan indikator loading
+                            document.getElementById('map-loading').style.display = 'none';
+
+                            // Tampilkan pesan error
+                            document.getElementById('map-loading').innerHTML =
+                                'Gagal mendapatkan lokasi. Silakan cek izin lokasi.';
+                            document.getElementById('map-loading').style.display = 'block';
+                            setTimeout(function() {
+                                document.getElementById('map-loading').style.display = 'none';
+                            }, 3000);
+                        });
+                    } else {
+                        // Jika geolocation tidak didukung
+                        // Tambahkan lingkaran radius tanpa marker user
+                        var radius = "{{ $lokasi_kantor->radius_cabang }}";
+                        var circle = L.circle([lat_kantor, long_kantor], {
+                            color: 'red',
+                            fillColor: '#f03',
+                            fillOpacity: 0.5,
+                            radius: radius
+                        }).addTo(map);
+
+                        // Sembunyikan indikator loading
+                        document.getElementById('map-loading').style.display = 'none';
+
+                        // Tampilkan pesan error
+                        document.getElementById('map-loading').innerHTML = 'Geolokasi tidak didukung oleh perangkat ini.';
+                        document.getElementById('map-loading').style.display = 'block';
+                        setTimeout(function() {
+                            document.getElementById('map-loading').style.display = 'none';
+                        }, 3000);
+                    }
+                } catch (error) {
+                    console.error("Error initializing map:", error);
+                    document.getElementById('map-loading').innerHTML = 'Gagal memuat peta. Silakan coba lagi.';
+                    document.getElementById('map-loading').style.display = 'block';
+                    setTimeout(function() {
+                        document.getElementById('map-loading').style.display = 'none';
+                    }, 3000);
                 }
             });
         });

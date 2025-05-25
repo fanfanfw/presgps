@@ -164,6 +164,8 @@ class PresensiController extends Controller
             return view('presensi.notif_jamkerja');
         }
 
+        $data['cabang'] = Cabang::all();
+
         $data['hariini'] = $hariini;
         $data['jam_kerja'] = $jamkerja;
         $data['lokasi_kantor'] = $lokasi_kantor;
@@ -212,7 +214,8 @@ class PresensiController extends Controller
 
         //Get Lokasi Kantor
         $cabang = Cabang::where('kode_cabang', $karyawan->kode_cabang)->first();
-        $lokasi_kantor = $cabang->lokasi_cabang;
+        // $lokasi_kantor = $cabang->lokasi_cabang;
+        $lokasi_kantor = $request->lokasi_cabang;
 
 
 
@@ -247,8 +250,8 @@ class PresensiController extends Controller
         $jam_mulai_masuk = $tanggal_presensi . " " . date('H:i', strtotime('-60 minutes', strtotime($jam_masuk)));
 
         //Jamulai Absen Pulang adalah 1 Jam dari Jam Masuk
-        $jam_mulai_pulang = $tanggal_presensi . " " . date('H:i', strtotime('+60 minutes', strtotime($jam_masuk)));
-
+        $jam_mulai_pulang =  date('Y-m-d H:i', strtotime('+60 minutes', strtotime($jam_masuk)));
+        //return $jam_mulai_pulang;
         $jam_pulang = $tanggal_pulang . " " . $jam_kerja->jam_pulang;
 
 
@@ -292,7 +295,11 @@ class PresensiController extends Controller
                             Storage::put($file, $image_base64);
                         }
 
-
+                        //Kirim Notifikasi Ke WA
+                        if ($karyawan->no_hp != null || $karyawan->no_hp != "") {
+                            $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen masuk pada " . $jam_presensi . " Semagat Bekerja";
+                            $this->sendwa($karyawan->no_hp, $message);
+                        }
                         return response()->json(['status' => true, 'message' => 'Berhasil Absen Masuk', 'notifikasi' => 'notifikasi_absenmasuk'], 200);
                     } catch (\Exception $e) {
                         return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
@@ -324,10 +331,13 @@ class PresensiController extends Controller
                                 'kode_jam_kerja' => $kode_jam_kerja,
                                 'status' => 'h'
                             ]);
-                            Storage::put($file, $image_base64);
                         }
-
-
+                        Storage::put($file, $image_base64);
+                        //Kirim Notifikasi Ke WA
+                        if ($karyawan->no_hp != null || $karyawan->no_hp != "") {
+                            $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Pulang pada " . $jam_presensi . "Hati Hati di Jalan";
+                            $this->sendwa($karyawan->no_hp, $message);
+                        }
                         return response()->json(['status' => true, 'message' => 'Berhasil Absen Pulang', 'notifikasi' => 'notifikasi_absenpulang'], 200);
                     } catch (\Exception $e) {
                         return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
@@ -337,6 +347,28 @@ class PresensiController extends Controller
         }
     }
 
+
+    function sendwa($no_hp, $message)
+    {
+        $generalsetting = Pengaturanumum::where('id', 1)->first();
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $generalsetting->domain_wa_gateway . '/send-message',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => array('message' => $message, 'number' => $no_hp, 'file_dikirim' => ''),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+    }
     public function edit(Request $request)
     {
         $nik = Crypt::decrypt($request->nik);
@@ -522,5 +554,131 @@ class PresensiController extends Controller
             ->limit(30)
             ->get();
         return view('presensi.histori', $data);
+    }
+
+
+    public function updatefrommachine(Request $request, $pin, $status_scan)
+    {
+        $pin = Crypt::decrypt($pin);
+        $scan = $request->scan_date;
+
+        $karyawan       = Karyawan::where('pin', $pin)->first();
+
+        if ($karyawan == null) {
+            return Redirect::back()->with(messageError('Karyawan Tidak Ditemukan'));
+            $nik = "";
+        } else {
+            $nik = $karyawan->nik;
+        }
+
+        $tanggal_sekarang   = date("Y-m-d", strtotime($scan));
+        $jam_sekarang = date("H:i", strtotime($scan));
+        $tanggal_kemarin = date("Y-m-d", strtotime("-1 days"));
+
+        $tanggal_besok = date("Y-m-d", strtotime("+1 days"));
+
+        //Cek Presensi Kemarin
+        $presensi_kemarin = Presensi::where('nik', $karyawan->nik)
+            ->join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->where('nik', $karyawan->nik)
+            ->where('tanggal', $tanggal_kemarin)->first();
+
+        $lintas_hari = $presensi_kemarin ? $presensi_kemarin->lintashari : 0;
+
+        //Jika Presensi Kemarin Status Lintas Hari nya 1 Makan Tanggal Presensi Sekarang adalah Tanggal Kemarin
+        $tanggal_presensi = $lintas_hari == 1 ? $tanggal_kemarin : $tanggal_sekarang;
+        $tanggal_pulang = $lintas_hari == 1 ? $tanggal_besok : $tanggal_sekarang;
+
+
+        $namahari = getnamaHari(date('D', strtotime($tanggal_presensi)));
+        //Cek Jam Kerja By Date
+        $jamkerja = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->where('nik', $karyawan->nik)
+            ->where('tanggal', $tanggal_presensi)
+            ->first();
+
+        //Jika Tidak Memiliki Jam Kerja By Date
+        if ($jamkerja == null) {
+            //Cek Jam Kerja harian / Jam Kerja Khusus / Jam Kerja Per Orangannya
+            $jamkerja = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->where('nik', $karyawan->nik)->where('hari', $namahari)->first();
+
+            // Jika Jam Kerja Harian Kosong
+            if ($jamkerja == null) {
+                $jamkerja = Jamkerja::where('kode_jam_kerja', 'JK01')->first();
+            }
+        }
+
+        //Cek Presensi
+        $presensi = Presensi::where('nik', $karyawan->nik)->where('tanggal', $tanggal_presensi)->first();
+
+        if ($presensi != null && $presensi->status != 'h') {
+            return Redirect::back()->with(messageError('Sudah Melakukan Presesni'));
+        } else if ($jamkerja == null) {
+            return Redirect::back()->with(messageError('Tidak Memiliki Jadwal'));
+        }
+
+        $kode_jam_kerja = $jamkerja->kode_jam_kerja;
+        $jam_kerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
+
+        $jam_presensi = $tanggal_sekarang . " " . $jam_sekarang;
+
+        $jam_masuk = $tanggal_presensi . " " . date('H:i', strtotime($jam_kerja->jam_masuk));
+
+        $presensi_hariini = Presensi::where('nik', $karyawan->nik)
+            ->where('tanggal', $tanggal_presensi)
+            ->first();
+
+        if (in_array($status_scan, [0, 2, 4, 6, 8])) {
+            if ($presensi_hariini && $presensi_hariini->jam_in != null) {
+                return Redirect::back()->with(messageError('Sudah Melakukan Presensi Masuk'));
+            } else {
+                try {
+                    if ($presensi_hariini != null) {
+                        Presensi::where('id', $presensi_hariini->id)->update([
+                            'jam_in' => $jam_presensi,
+                        ]);
+                    } else {
+                        Presensi::create([
+                            'nik' => $karyawan->nik,
+                            'tanggal' => $tanggal_presensi,
+                            'jam_in' => $jam_presensi,
+                            'jam_out' => null,
+                            'lokasi_out' => null,
+                            'foto_out' => null,
+                            'kode_jam_kerja' => $kode_jam_kerja,
+                            'status' => 'h'
+                        ]);
+                    }
+
+
+                    return Redirect::back()->with(messageSuccess('Berhasil Melakukan Presensi Masuk'));
+                } catch (\Exception $e) {
+                    return Redirect::back()->with(messageError($e->getMessage()));
+                }
+            }
+        } else {
+            try {
+                if ($presensi_hariini != null) {
+                    Presensi::where('id', $presensi_hariini->id)->update([
+                        'jam_out' => $jam_presensi,
+                    ]);
+                } else {
+                    Presensi::create([
+                        'nik' => $karyawan->nik,
+                        'tanggal' => $tanggal_presensi,
+                        'jam_in' => null,
+                        'jam_out' => $jam_presensi,
+                        'lokasi_in' => null,
+                        'foto_in' => null,
+                        'kode_jam_kerja' => $kode_jam_kerja,
+                        'status' => 'h'
+                    ]);
+                }
+                return Redirect::back()->with(messageSuccess('Berhasil Melakukan Presensi Pulang'));
+            } catch (\Exception $e) {
+                return Redirect::back()->with(messageError($e->getMessage()));
+            }
+        }
     }
 }

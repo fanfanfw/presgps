@@ -23,6 +23,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WagatewayController;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
 
@@ -37,13 +38,11 @@ use Spatie\Permission\Models\Role;
 |
 */
 
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard.index');
-    }
-    return view('auth.loginuser');
-})->name('loginuser');
-
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return view('auth.loginuser');
+    })->name('loginuser');
+});
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -65,7 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard.index');
     });
-    Route::controller(RoleController::class)->group(function () {
+    Route::middleware('role:super admin')->controller(RoleController::class)->group(function () {
         Route::get('/roles', 'index')->name('roles.index');
         Route::get('/roles/create', 'create')->name('roles.create');
         Route::post('/roles', 'store')->name('roles.store');
@@ -77,7 +76,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    Route::controller(Permission_groupController::class)->group(function () {
+    Route::middleware('role:super admin')->controller(Permission_groupController::class)->group(function () {
         Route::get('/permissiongroups', 'index')->name('permissiongroups.index');
         Route::get('/permissiongroups/create', 'create')->name('permissiongroups.create');
         Route::post('/permissiongroups', 'store')->name('permissiongroups.store');
@@ -87,7 +86,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    Route::controller(PermissionController::class)->group(function () {
+    Route::middleware('role:super admin')->controller(PermissionController::class)->group(function () {
         Route::get('/permissions', 'index')->name('permissions.index');
         Route::get('/permissions/create', 'create')->name('permissions.create');
         Route::post('/permissions', 'store')->name('permissions.store');
@@ -96,7 +95,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/permissions/{id}/delete', 'destroy')->name('permissions.delete');
     });
 
-    Route::controller(UserController::class)->group(function () {
+    Route::middleware('role:super admin')->controller(UserController::class)->group(function () {
         Route::get('/users', 'index')->name('users.index');
         Route::get('/users/create', 'create')->name('users.create');
         Route::post('/users', 'store')->name('users.store');
@@ -205,6 +204,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/presensi/histori', 'histori')->name('presensi.histori')->can('presensi.index');
         Route::get('/presensi/create', 'create')->name('presensi.create')->can('presensi.create');
         Route::post('/presensi', 'store')->name('presensi.store')->can('presensi.create');
+        Route::post('/presensi/edit', 'edit')->name('presensi.edit')->can('presensi.edit');
         Route::post('/presensi/update', 'update')->name('presensi.update')->can('presensi.edit');
         Route::delete('/presensi/{id}/delete', 'destroy')->name('presensi.delete')->can('presensi.delete');
         Route::get('/presensi/{id}/{status}/show', 'show')->name('presensi.show');
@@ -295,6 +295,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/facerecognition/{id}/delete', 'destroy')->name('facerecognition.delete');
 
         Route::get('/facerecognition/getwajah', 'getWajah')->name('facerecognition.getwajah');
+    });
+
+    Route::controller(WagatewayController::class)->group(function () {
+        Route::get('/wagateway', 'index')->name('wagateway.index')->can('wagateway.index');
     });
 });
 

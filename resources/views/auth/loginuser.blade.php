@@ -45,7 +45,7 @@
                         @csrf
                         <div class="logo">
                             <img src="{{ asset('assets/login/images/logoweb-1.png') }}" alt="easyclass" />
-                            <h4>ROODOLPH E-PRESENSI</h4>
+                            <h4>E-PRESENSI V2</h4>
                         </div>
 
                         <div class="heading">
@@ -68,22 +68,24 @@
 
                         <div class="actual-form">
                             <div class="input-wrap">
-                                <input type="text" minlength="4"
-                                    class="input-field @error('id_user') is-invalid @enderror" name="id_user"
-                                    value="{{ old('id_user') }}" autocomplete="off" placeholder="Username / Email"
-                                    required />
+                                <input type="text" minlength="4" class="input-field @error('id_user') is-invalid @enderror" name="id_user"
+                                    value="{{ old('id_user') }}" autocomplete="off" placeholder="Username / Email" required />
                                 {{-- @error('id_user')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror --}}
                             </div>
 
                             <div class="input-wrap">
-                                <input type="password" minlength="4" name="password"
-                                    class="input-field @error('password') is-invalid @enderror" autocomplete="off"
-                                    placeholder="Password" required />
+                                <input type="password" minlength="4" name="password" class="input-field @error('password') is-invalid @enderror"
+                                    autocomplete="off" placeholder="Password" required />
                                 {{-- @error('password')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror --}}
+                            </div>
+
+                            <div class="checkbox-wrap">
+                                <input type="checkbox" id="remember" name="remember" style="margin-right: 8px; width: 16px; height: 16px;">
+                                <label for="remember" style="color: #666; font-size: 14px; cursor: pointer; margin-left: 20px;">Remember Me</label>
                             </div>
 
                             <input type="submit" value="Sign In" class="sign-btn" />
