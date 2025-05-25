@@ -37,11 +37,13 @@ use Spatie\Permission\Models\Role;
 |
 */
 
-Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return view('auth.loginuser');
-    })->name('loginuser');
-});
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard.index');
+    }
+    return view('auth.loginuser');
+})->name('loginuser');
+
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
