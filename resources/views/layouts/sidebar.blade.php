@@ -4,10 +4,10 @@
      <div class="app-brand demo">
          <a href="index.html" class="app-brand-link">
              <span class="app-brand-logo demo">
-                 <i class="ti ti-fingerprint" style="font-size:32px !important"></i>
+                 <i class="ti ti-fingerprint" style="font-size:48px !important"></i>
                  {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="64"> --}}
              </span>
-             <span class="app-brand-text demo menu-text fw-bold"><i><b>e</b></i>PresensiV2</span>
+             <span class="app-brand-text demo menu-text fw-bold">Roodolph<br><i><b>e</b></i>-Presensi</span>
          </a>
 
          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
