@@ -203,11 +203,6 @@
                                                 <div class="d-flex">
                                                     <a href="#" class="me-1 koreksiPresensi" nik="{{ Crypt::encrypt($d->nik) }}"
                                                         tanggal="{{ $tanggal_presensi }}"><i class="ti ti-edit text-success"></i></a>
-
-                                                    <a href="#" class="btngetDatamesin" pin="{{ $d->pin }}"
-                                                        tanggal="{{ !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d') }}"> <i
-                                                            class="ti ti-device-desktop text-primary"></i>
-                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -268,38 +263,6 @@
             $("#modal").modal("show");
             $(".modal-title").text("Data Presensi");
             $("#loadmodal").load(`/presensi/${id}/${status}/show`);
-        });
-
-        $(".btngetDatamesin").click(function(e) {
-            e.preventDefault();
-            var pin = $(this).attr("pin");
-            var tanggal = $(this).attr("tanggal");
-            // var kode_jadwal = $(this).attr("kode_jadwal");
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`);
-            //alert(kode_jadwal);
-            $("#modal").modal("show");
-            $(".modal-title").text("Get Data Mesin");
-            $.ajax({
-                type: 'POST',
-                url: '/presensi/getdatamesin',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    pin: pin,
-                    tanggal: tanggal,
-                    // kode_jadwal: kode_jadwal
-                },
-                cache: false,
-                success: function(respond) {
-                    console.log(respond);
-                    $("#loadmodal").html(respond);
-                }
-            });
         });
     });
 </script>

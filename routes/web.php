@@ -210,7 +210,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/presensi/{id}/{status}/show', 'show')->name('presensi.show');
         Route::post('/presensi/edit', 'edit')->name('presensi.edit')->can('presensi.edit');
 
-        Route::post('/presensi/getdatamesin', 'getdatamesin')->name('presensi.getdatamesin');
         Route::post('/presensi/{pin}/{status_scan}/updatefrommachine', 'updatefrommachine')->name('presensi.updatefrommachine');
     });
 
