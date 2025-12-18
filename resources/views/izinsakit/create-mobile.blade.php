@@ -31,7 +31,8 @@
     <div id="content-section">
         <div class="row" style="margin-top: 80px">
             <div class="col pl-3 pr-3">
-                <form action="{{ route('izinsakit.store') }}" method="POST" id="formIzin" autocomplete="off">
+                <form action="{{ route('izinsakit.store') }}" method="POST" id="formIzin" autocomplete="off"
+                    enctype="multipart/form-data">
                     @csrf
 
                     <input type="text" class="feedback-input dari" name="dari" placeholder="Dari" id="datePicker" />
