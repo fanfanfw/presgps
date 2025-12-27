@@ -35,7 +35,7 @@
                     <th>Lama</th>
                     <td class="text-end">
                         @php
-                            $lama = hitungHari($izincuti->dari, $izincuti->sampai);
+                            $lama = hitungHariKerja($izincuti->nik, $izincuti->dari, $izincuti->sampai);
                         @endphp
                         {{ $lama }} Hari / {{ DateToIndo($izincuti->dari) }} - {{ DateToIndo($izincuti->sampai) }}
                     </td>

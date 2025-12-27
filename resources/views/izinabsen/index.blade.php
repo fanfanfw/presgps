@@ -114,7 +114,7 @@
                                                 <td>{{ $d->kode_cabang }}</td>
                                                 <td>
                                                     @php
-                                                        $lama = hitungHari($d->dari, $d->sampai);
+                                                        $lama = hitungHariKerja($d->nik, $d->dari, $d->sampai);
                                                     @endphp
                                                     {{ $lama }} Hari
                                                 </td>

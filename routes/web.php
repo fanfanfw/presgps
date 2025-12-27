@@ -5,6 +5,7 @@ use App\Http\Controllers\CutiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\DepartemenController;
+use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\FacerecognitionController;
 use App\Http\Controllers\GeneralsettingController;
 use App\Http\Controllers\HariliburController;
@@ -50,6 +51,10 @@ Route::get('/', function () {
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::controller(AjaxController::class)->group(function () {
+        Route::get('/ajax/hitung-hari-kerja', 'hitungHariKerja')->name('ajax.hitungHariKerja');
+    });
+
     // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     // Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -42,25 +42,33 @@
             });
         }
 
-        function hitungHari(startDate, endDate) {
-            if (startDate && endDate) {
-                var start = new Date(startDate);
-                var end = new Date(endDate);
-
-                // Tambahkan 1 hari agar penghitungan inklusif
-                var timeDifference = end - start + (1000 * 3600 * 24);
-                var dayDifference = timeDifference / (1000 * 3600 * 24);
-
-                return dayDifference;
-            } else {
-                return 0;
-            }
-        }
-
-        $("#dari,#sampai").on("change", function() {
+        function updateJmlHari() {
+            const nik = form.find("#nik").val();
             const dari = form.find("#dari").val();
             const sampai = form.find("#sampai").val();
-            $("#jml_hari").val(hitungHari(dari, sampai));
+
+            if (nik == '' || dari == '' || sampai == '') {
+                form.find("#jml_hari").val('');
+                return;
+            }
+
+            $.get("{{ route('ajax.hitungHariKerja') }}", {
+                nik: nik,
+                dari: dari,
+                sampai: sampai
+            }).done(function(res) {
+                if (res && res.success) {
+                    form.find("#jml_hari").val(res.jml_hari);
+                } else {
+                    form.find("#jml_hari").val('');
+                }
+            }).fail(function() {
+                form.find("#jml_hari").val('');
+            });
+        }
+
+        $("#nik,#dari,#sampai").on("change", function() {
+            updateJmlHari();
         });
 
         function buttonDisabled() {
@@ -72,7 +80,7 @@
             Loading..`);
         }
 
-        form.find("#jml_hari").val(hitungHari(form.find("#dari").val(), form.find("#sampai").val()));
+        updateJmlHari();
         form.submit(function(e) {
             const nik = form.find("#nik").val();
             const dari = form.find("#dari").val();

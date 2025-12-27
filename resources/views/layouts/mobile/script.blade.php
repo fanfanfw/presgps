@@ -43,7 +43,8 @@
         toastr.options.hideEasing = 'linear';
         toastr.options.progressBar = true;
         toastr.options.positionClass = 'toast-bottom-full-width';
-        toastr.success("Berhasil", "{{ $message }}", {
+        toastr.options.escapeHtml = true;
+        toastr.success(@json($message), "Berhasil", {
             timeOut: 3000
         });
     </script>
@@ -55,7 +56,8 @@
         toastr.options.hideEasing = 'linear';
         toastr.options.progressBar = true;
         toastr.options.positionClass = 'toast-bottom-full-width';
-        toastr.error("Gagal", "{{ $message }}", {
+        toastr.options.escapeHtml = true;
+        toastr.error(@json($message), "Gagal", {
             timeOut: 3000
         });
     </script>
@@ -66,7 +68,8 @@
         toastr.options.showEasing = 'swing';
         toastr.options.hideEasing = 'linear';
         toastr.options.progressBar = true;
-        toastr.warning("Warning", "{{ $message }}", {
+        toastr.options.escapeHtml = true;
+        toastr.warning(@json($message), "Warning", {
             timeOut: 3000
         });
     </script>
@@ -74,23 +77,24 @@
 
 @if ($errors->any())
     @php
-        $err = '';
+        $err = implode("\n", $errors->all());
     @endphp
-    @foreach ($errors->all() as $error)
-        @php
-            $err .= $error;
-        @endphp
-    @endforeach
     <script>
         toastr.options.showEasing = 'swing';
         toastr.options.hideEasing = 'linear';
         toastr.options.progressBar = true;
         // toastr.options.positionClass = 'toast-top-center';
-        toastr.error("Gagal", "{{ $err }}", {
+        toastr.options.escapeHtml = true;
+        toastr.error(@json($err), "Gagal", {
             timeOut: 3000
         });
     </script>
 @endif
+<style>
+    .toast-message {
+        white-space: pre-line;
+    }
+</style>
 <script>
     $('.cancel-confirm').click(function(event) {
         var form = $(this).closest("form");

@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use App\Imports\KaryawanImport;
 use App\Exports\TemplateKaryawanExport;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class KaryawanController extends Controller
@@ -72,7 +74,7 @@ class KaryawanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nik' => 'required',
+            'nik' => ['required', Rule::unique('karyawan', 'nik')],
             'no_ktp' => 'required',
             'nama_karyawan' => 'required',
             'tempat_lahir' => 'required',
@@ -87,6 +89,8 @@ class KaryawanController extends Controller
             'kode_jabatan' => 'required',
             'tanggal_masuk' => 'required',
             'status_karyawan' => 'required'
+        ], [
+            'nik.unique' => 'NIK ' . $request->nik . ' sudah terdaftar. Gunakan NIK lain.',
         ]);
 
         try {
@@ -127,6 +131,11 @@ class KaryawanController extends Controller
                 }
             }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+        } catch (QueryException $e) {
+            if (($e->errorInfo[1] ?? null) == 1062) {
+                return Redirect::back()->with(messageError('NIK ' . $request->nik . ' sudah terdaftar. Gunakan NIK lain.'));
+            }
+            return Redirect::back()->with(messageError('Gagal menyimpan data karyawan.'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
         }
@@ -149,7 +158,7 @@ class KaryawanController extends Controller
     {
         $nik = Crypt::decrypt($nik);
         $request->validate([
-            'nik' => 'required',
+            'nik' => ['required', Rule::unique('karyawan', 'nik')->ignore($nik, 'nik')],
             'no_ktp' => 'required',
             'nama_karyawan' => 'required',
             'tempat_lahir' => 'required',
@@ -164,6 +173,8 @@ class KaryawanController extends Controller
             'kode_jabatan' => 'required',
             'tanggal_masuk' => 'required',
             'status_karyawan' => 'required'
+        ], [
+            'nik.unique' => 'NIK ' . $request->nik . ' sudah terdaftar. Gunakan NIK lain.',
         ]);
 
         try {
@@ -207,6 +218,11 @@ class KaryawanController extends Controller
                 }
             }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+        } catch (QueryException $e) {
+            if (($e->errorInfo[1] ?? null) == 1062) {
+                return Redirect::back()->with(messageError('NIK ' . $request->nik . ' sudah terdaftar. Gunakan NIK lain.'));
+            }
+            return Redirect::back()->with(messageError('Gagal menyimpan data karyawan.'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
         }

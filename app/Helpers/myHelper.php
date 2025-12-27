@@ -1,6 +1,10 @@
 <?php
 
 use App\Models\Detailharilibur;
+use App\Models\Detailsetjamkerjabydept;
+use App\Models\Karyawan;
+use App\Models\Setjamkerjabydate;
+use App\Models\Setjamkerjabyday;
 use App\Models\Tutuplaporan;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redirect;
@@ -308,6 +312,137 @@ function hitungHari($startDate, $endDate)
     } else {
         return 0;
     }
+}
+
+function isJamKerjaLibur($jamkerja)
+{
+    if ($jamkerja == null) {
+        return true;
+    }
+
+    $totalJam = $jamkerja->total_jam ?? null;
+    if ($totalJam !== null && floatval($totalJam) <= 0) {
+        return true;
+    }
+
+    $jamMasuk = $jamkerja->jam_masuk ?? null;
+    $jamPulang = $jamkerja->jam_pulang ?? null;
+    if ($jamMasuk !== null && $jamPulang !== null) {
+        $jamMasukShort = substr((string) $jamMasuk, 0, 5);
+        $jamPulangShort = substr((string) $jamPulang, 0, 5);
+        if ($jamMasukShort === '00:00' && $jamPulangShort === '00:00') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function hitungHariKerja($nik, $startDate, $endDate)
+{
+    if (empty($nik) || empty($startDate) || empty($endDate)) {
+        return 0;
+    }
+
+    try {
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->startOfDay();
+    } catch (\Exception $e) {
+        return 0;
+    }
+
+    if ($end->lt($start)) {
+        return 0;
+    }
+
+    static $karyawanCache = [];
+    static $jamKerjaByDayCache = [];
+    static $jamKerjaByDeptCache = [];
+    static $jamKerjaByDateRangeCache = [];
+    static $hariLiburRangeCache = [];
+
+    if (!array_key_exists($nik, $karyawanCache)) {
+        $karyawanCache[$nik] = Karyawan::select('kode_dept', 'kode_cabang')->where('nik', $nik)->first();
+    }
+    $karyawan = $karyawanCache[$nik];
+
+    if (!array_key_exists($nik, $jamKerjaByDayCache)) {
+        $rows = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->where('nik', $nik)
+            ->get();
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->hari] = $row;
+        }
+        $jamKerjaByDayCache[$nik] = $map;
+    }
+    $jamKerjaByDay = $jamKerjaByDayCache[$nik];
+
+    $jamKerjaByDept = [];
+    if ($karyawan != null) {
+        $deptKey = $karyawan->kode_dept . '|' . $karyawan->kode_cabang;
+        if (!array_key_exists($deptKey, $jamKerjaByDeptCache)) {
+            $rows = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
+                ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->where('kode_dept', $karyawan->kode_dept)
+                ->where('kode_cabang', $karyawan->kode_cabang)
+                ->get();
+            $map = [];
+            foreach ($rows as $row) {
+                $map[$row->hari] = $row;
+            }
+            $jamKerjaByDeptCache[$deptKey] = $map;
+        }
+        $jamKerjaByDept = $jamKerjaByDeptCache[$deptKey];
+    }
+
+    $rangeKey = $nik . '|' . $start->toDateString() . '|' . $end->toDateString();
+
+    if (!array_key_exists($rangeKey, $jamKerjaByDateRangeCache)) {
+        $rows = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->where('nik', $nik)
+            ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
+            ->get();
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->tanggal] = $row;
+        }
+        $jamKerjaByDateRangeCache[$rangeKey] = $map;
+    }
+    $jamKerjaByDate = $jamKerjaByDateRangeCache[$rangeKey];
+
+    if (!array_key_exists($rangeKey, $hariLiburRangeCache)) {
+        $dates = Detailharilibur::join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
+            ->where('hari_libur_detail.nik', $nik)
+            ->whereBetween('hari_libur.tanggal', [$start->toDateString(), $end->toDateString()])
+            ->pluck('hari_libur.tanggal')
+            ->all();
+        $hariLiburRangeCache[$rangeKey] = array_fill_keys($dates, true);
+    }
+    $hariLibur = $hariLiburRangeCache[$rangeKey];
+
+    $count = 0;
+    $cursor = $start->copy();
+    while ($cursor->lte($end)) {
+        $tanggal = $cursor->toDateString();
+        if (!empty($hariLibur[$tanggal])) {
+            $cursor->addDay();
+            continue;
+        }
+
+        $namahari = getnamaHari($cursor->format('D'));
+        $jamkerja = $jamKerjaByDate[$tanggal] ?? $jamKerjaByDay[$namahari] ?? ($jamKerjaByDept[$namahari] ?? null);
+
+        if ($jamkerja == null || isJamKerjaLibur($jamkerja)) {
+            $cursor->addDay();
+            continue;
+        }
+
+        $count++;
+        $cursor->addDay();
+    }
+
+    return $count;
 }
 
 function getSid($file)

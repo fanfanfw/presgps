@@ -30,14 +30,14 @@
                 <td class="text-end">{{ $izinsakit->nama_cabang }}</td>
             </tr>
             <tr>
-                <th>Lama</th>
-                <td class="text-end">
-                    @php
-                        $lama = hitungHari($izinsakit->dari, $izinsakit->sampai);
-                    @endphp
-                    {{ $lama }} Hari / {{ DateToIndo($izinsakit->dari) }} - {{ DateToIndo($izinsakit->sampai) }}
-                </td>
-            </tr>
+                    <th>Lama</th>
+                    <td class="text-end">
+                        @php
+                            $lama = hitungHariKerja($izinsakit->nik, $izinsakit->dari, $izinsakit->sampai);
+                        @endphp
+                        {{ $lama }} Hari / {{ DateToIndo($izinsakit->dari) }} - {{ DateToIndo($izinsakit->sampai) }}
+                    </td>
+                </tr>
             <tr>
                 <th>Keterangan</th>
                 <td class="text-end">{{ $izinsakit->keterangan }}</td>

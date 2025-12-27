@@ -112,15 +112,17 @@
                                                 <td>{{ $d->jenis_cuti }}</td>
                                                 <td>
                                                     @php
-                                                        $lama = hitungHari($d->dari, $d->sampai);
+                                                        $lama = hitungHariKerja($d->nik, $d->dari, $d->sampai);
                                                     @endphp
                                                     {{ $lama }} Hari
                                                 </td>
                                                 <td>
-                                                    @if ($d->status == '1')
+                                                    @if ($d->status == 0)
+                                                        <i class="ti ti-hourglass-high text-warning"></i>
+                                                    @elseif ($d->status == 1)
                                                         <i class="ti ti-checks text-success"></i>
-                                                    @else
-                                                        <i class="ti ti-hourglass-low text-warning"></i>
+                                                    @elseif ($d->status == 2)
+                                                        <i class="ti ti-square-x text-danger"></i>
                                                     @endif
                                                 </td>
                                                 <td>

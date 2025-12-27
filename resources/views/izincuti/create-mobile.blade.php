@@ -70,8 +70,8 @@
             endYear: 2100,
             lang: lang,
             confirm: function(date) {
-                let jmlhari = hitungHari(date, $('#datePicker2').val());
-                $('.jml_hari').val(jmlhari);
+                $('.dari').val(date);
+                updateJmlHari();
             }
         });
 
@@ -82,31 +82,32 @@
             endYear: 2100,
             lang: lang,
             confirm: function(date) {
-                let jmlhari = hitungHari($('#datePicker').val(), date);
-                $('.jml_hari').val(jmlhari);
+                $('.sampai').val(date);
+                updateJmlHari();
             }
         });
 
-        function hitungHari(startDate, endDate) {
+        function updateJmlHari() {
+            let dari = $('.dari').val();
+            let sampai = $('.sampai').val();
 
-            if (startDate && endDate) {
-                // let parts1 = startDate.split("-");
-                // startDate = `${parts1[2]}-${parts1[1]}-${parts1[0]}`;
-
-                // let parts2 = endDate.split("-");
-                // endDate = `${parts2[2]}-${parts2[1]}-${parts2[0]}`;
-
-                var start = new Date(startDate);
-                var end = new Date(endDate);
-
-                // Tambahkan 1 hari agar penghitungan inklusif
-                var timeDifference = end - start + (1000 * 3600 * 24);
-                var dayDifference = timeDifference / (1000 * 3600 * 24);
-
-                return dayDifference;
-            } else {
-                return 0;
+            if (dari == "" || sampai == "") {
+                $('.jml_hari').val('');
+                return;
             }
+
+            $.get("{{ route('ajax.hitungHariKerja') }}", {
+                dari: dari,
+                sampai: sampai
+            }).done(function(res) {
+                if (res && res.success) {
+                    $('.jml_hari').val(res.jml_hari);
+                } else {
+                    $('.jml_hari').val('');
+                }
+            }).fail(function() {
+                $('.jml_hari').val('');
+            });
         }
 
         $("#formIzin").submit(function(e) {
@@ -156,18 +157,7 @@
                     icon: "warning",
                     showConfirmButton: true,
                     didClose: () => {
-                        form.find("#sampai").focus();
-                    }
-                });
-                return false;
-            } else if (hitungHari(dari, sampai) > 3) {
-                Swal.fire({
-                    title: "Oops!",
-                    text: 'Periode Izin Tidak Boleh Lebih Dari 3 Hari !',
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: () => {
-                        form.find("#sampai").focus();
+                        $('.sampai').focus();
                     }
                 });
                 return false;
