@@ -145,18 +145,6 @@
                                                             </a>
                                                         </div>
                                                     @endcan
-                                                    @can('karyawan.delete')
-                                                        <div>
-                                                            <form method="POST" name="deleteform" class="deleteform me-1"
-                                                                action="{{ route('karyawan.delete', Crypt::encrypt($d->nik)) }}">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <a href="#" class="delete-confirm ml-1">
-                                                                    <i class="ti ti-trash text-danger"></i>
-                                                                </a>
-                                                            </form>
-                                                        </div>
-                                                    @endcan
 
                                                     @can('users.create')
                                                         @if (empty($d->id_user))
