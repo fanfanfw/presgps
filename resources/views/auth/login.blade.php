@@ -75,8 +75,8 @@
                         <div class="mb-3 form-password-toggle">
                             <div class="d-flex justify-content-between">
                                 <label class="form-label" for="password">Password</label>
-                                <a href="auth-forgot-password-basic.html">
-                                    <small>Forgot Password?</small>
+                                <a href="{{ route('admin.password.request') }}">
+                                    <small>Lupa Password (Admin/HRD)?</small>
                                 </a>
                             </div>
                             <div class="input-group input-group-merge">

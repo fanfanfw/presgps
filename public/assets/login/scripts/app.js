@@ -37,3 +37,12 @@ function moveSlider() {
 bullets.forEach((bullet) => {
     bullet.addEventListener("click", moveSlider);
 });
+
+// Toggle show/hide password on login page
+const showPasswordToggle = document.getElementById("show-password-login");
+const passwordInput = document.getElementById("password-login");
+if (showPasswordToggle && passwordInput) {
+    showPasswordToggle.addEventListener("change", () => {
+        passwordInput.type = showPasswordToggle.checked ? "text" : "password";
+    });
+}

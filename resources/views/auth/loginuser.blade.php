@@ -22,6 +22,38 @@
             border-color: #f5c6cb;
         }
 
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .show-password {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: -1rem;
+            margin-bottom: 1.5rem;
+            color: #bbb;
+            font-size: 0.75rem;
+        }
+
+        .show-password input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #144725;
+        }
+
+        .show-password label {
+            position: static;
+            transform: none;
+            top: auto;
+            left: auto;
+            pointer-events: auto;
+            margin: 0;
+            color: inherit;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateY(-20px);
@@ -58,6 +90,18 @@
                             </div>
                         @endif
 
+                        @if (session('status'))
+                            <div class="alert alert-success">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if (session('message'))
+                            <div class="alert alert-danger">
+                                {{ session('message') }}
+                            </div>
+                        @endif
+
                         @if ($errors->any())
                             <div class="alert alert-danger">
                                 @foreach ($errors->all() as $error)
@@ -78,7 +122,7 @@
                             </div>
 
                             <div class="input-wrap">
-                                <input type="password" minlength="4" name="password"
+                                <input type="password" minlength="4" name="password" id="password-login"
                                     class="input-field @error('password') is-invalid @enderror" autocomplete="off"
                                     placeholder="Password" required />
                                 {{-- @error('password')
@@ -86,11 +130,16 @@
                                 @enderror --}}
                             </div>
 
+                            <div class="show-password">
+                                <input type="checkbox" id="show-password-login" />
+                                <label for="show-password-login">Tampilkan Password</label>
+                            </div>
+
                             <input type="submit" value="Sign In" class="sign-btn" />
 
                             <p class="text">
-                                Forgotten your password or you login datails?
-                                <a href="#">Get help</a> signing in
+                                Lupa password Admin/HRD?
+                                <a href="{{ route('admin.password.request') }}">Reset di sini</a>
                             </p>
                         </div>
                     </form>
@@ -125,7 +174,7 @@
     </main>
 
     <!-- Javascript file -->
-    <script src="{{ asset('assets/login/script/app.js') }}"></script>
+    <script src="{{ asset('assets/login/scripts/app.js') }}"></script>
 </body>
 
 </html>
