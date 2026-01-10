@@ -14,7 +14,8 @@
             <tr>
                 <td>
                     @if ($generalsetting->logo && Storage::exists('public/logo/' . $generalsetting->logo))
-                        <img src="{{ asset('storage/logo/' . $generalsetting->logo) }}" alt="Logo Perusahaan" style="max-width: 100px;">
+                        <img src="{{ asset('storage/logo/' . $generalsetting->logo) }}" alt="Logo Perusahaan"
+                            style="max-width: 100px;">
                     @else
                         <img src="https://placehold.co/100x100?text=Logo" alt="Logo Default" style="max-width: 100px;">
                     @endif
@@ -25,7 +26,8 @@
                         <br>
                         {{ $generalsetting->nama_perusahaan }}
                         <br>
-                        PERIODE {{ date('d-m-Y', strtotime($periode_dari)) }} - {{ date('d-m-Y', strtotime($periode_sampai)) }}
+                        PERIODE {{ date('d-m-Y', strtotime($periode_dari)) }} -
+                        {{ date('d-m-Y', strtotime($periode_sampai)) }}
                     </h4>
                     <span style="font-style: italic;">{{ $generalsetting->alamat }}</span><br>
                     <span style="font-style: italic;">{{ $generalsetting->telepon }}</span>
@@ -44,6 +46,8 @@
                     <th rowspan="3">Dept</th>
                     <th rowspan="3">Kode Cabang</th>
                     <th colspan="{{ $jmlhari }}">Tanggal</th>
+                    <th rowspan="3">Jml Izin</th>
+                    <th rowspan="3">Jml Sakit</th>
                     <th rowspan="3">Denda</th>
                     <th rowspan="3">Pot. Jam</th>
                 </tr>
@@ -85,6 +89,8 @@
                         @php
                             $total_denda = 0;
                             $total_potongan_jam = 0;
+                            $total_izin = 0;
+                            $total_sakit = 0;
                         @endphp
                         @while (strtotime($tanggal_presensi) <= strtotime($periode_sampai))
                             @php
@@ -124,13 +130,13 @@
 
                                         $ket_presensi =
                                             ' <span
-                                                style="color:' .
+                                                                        style="color:' .
                                             $color_jam_in .
                                             '">' .
                                             $jam_in .
                                             '</span> -
-                                            <span
-                                                style="color:' .
+                                                                    <span
+                                                                        style="color:' .
                                             $color_jam_out .
                                             '">' .
                                             $jam_out .
@@ -140,13 +146,13 @@
                                         $color_terlambat = $terlambat != null ? $terlambat['color'] : '';
                                         $ket_terlambat =
                                             $terlambat != null
-                                                ? '<span
-                                                style="color:' .
-                                                    $color_terlambat .
-                                                    '">' .
-                                                    $terlambat['show_laporan'] .
-                                                    '</span>'
-                                                : '';
+                                            ? '<span
+                                                                        style="color:' .
+                                            $color_terlambat .
+                                            '">' .
+                                            $terlambat['show_laporan'] .
+                                            '</span>'
+                                            : '';
 
                                         if ($terlambat != null) {
                                             if ($terlambat['desimal_terlambat'] < 1) {
@@ -238,6 +244,12 @@
                             @php
                                 $total_denda += $denda;
                                 $total_potongan_jam += $potongan_jam;
+                                if (isset($d[$tanggal_presensi]) && $d[$tanggal_presensi]['status'] == 'i') {
+                                    $total_izin++;
+                                }
+                                if (isset($d[$tanggal_presensi]) && $d[$tanggal_presensi]['status'] == 's') {
+                                    $total_sakit++;
+                                }
                             @endphp
                             <td style="background-color:{{ $bgcolor }}; color:{{ $textcolor }}">
                                 {!! $ket !!}
@@ -246,6 +258,8 @@
                                 $tanggal_presensi = date('Y-m-d', strtotime('+1 day', strtotime($tanggal_presensi)));
                             @endphp
                         @endwhile
+                        <td style="text-align: center">{{ $total_izin }}</td>
+                        <td style="text-align: center">{{ $total_sakit }}</td>
                         <td style="text-align: right">{{ formatAngka($total_denda) }}</td>
                         <td style="text-align: center">{{ formatAngkaDesimal($total_potongan_jam) }}</td>
                     </tr>
